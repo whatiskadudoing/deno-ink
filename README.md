@@ -1,11 +1,206 @@
-# deno-ink
+<p align="center">
+  <h1 align="center">deno-ink</h1>
+  <p align="center">
+    <b>React for CLIs.</b> Build and test your CLI output using components.
+  </p>
+</p>
 
-A Deno-native implementation of [Ink](https://github.com/vadimdemedes/ink) - the React renderer for building CLI applications. Build beautiful, interactive command-line interfaces using React components.
+<p align="center">
+  <a href="https://jsr.io/@deno-ink/core"><img src="https://jsr.io/badges/@deno-ink/core" alt="JSR" /></a>
+  <a href="https://github.com/whatiskadudoing/deno-ink/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License" /></a>
+  <a href="https://deno.land"><img src="https://img.shields.io/badge/deno-2.x-black.svg?logo=deno" alt="Deno" /></a>
+</p>
+
+---
+
+Deno-native port of [Ink](https://github.com/vadimdemedes/ink) — the popular React renderer for building beautiful, interactive command-line interfaces. Use React components and Flexbox layouts to create rich terminal UIs.
+
+## Why deno-ink?
+
+- **React for the terminal** — Use the same component-based architecture you love from React
+- **Flexbox layouts** — Build complex layouts using familiar CSS-like Flexbox properties (powered by Yoga)
+- **Rich components** — Box, Text, Spinner, TextInput, SelectInput, ProgressBar, and more
+- **Full hook support** — useInput, useFocus, useApp, and all React hooks work out of the box
+- **TypeScript-first** — Built with TypeScript, fully typed API
+- **Deno-native** — No Node.js required, works with Deno 2.x
+
+## Installation
+
+```typescript
+import { render, Box, Text } from "jsr:@deno-ink/core";
+```
+
+Or add to your `deno.json`:
+
+```json
+{
+  "imports": {
+    "@deno-ink/core": "jsr:@deno-ink/core"
+  }
+}
+```
+
+## Quick Start
+
+```tsx
+import React from "npm:react";
+import { render, Box, Text } from "jsr:@deno-ink/core";
+
+function App() {
+  return (
+    <Box flexDirection="column" padding={1}>
+      <Text color="green" bold>
+        Hello from deno-ink!
+      </Text>
+      <Text>Build beautiful CLI apps with React</Text>
+    </Box>
+  );
+}
+
+const { waitUntilExit } = await render(<App />);
+await waitUntilExit();
+```
+
+Run with:
+
+```bash
+deno run --allow-all app.tsx
+```
+
+## Features
+
+### Components
+
+| Component | Description |
+|-----------|-------------|
+| `<Box>` | Flexbox container for layouts |
+| `<Text>` | Styled text with colors, bold, italic, underline |
+| `<Spinner>` | Animated loading spinners (25+ styles) |
+| `<TextInput>` | Single-line text input |
+| `<SelectInput>` | Arrow-key navigable selection menu |
+| `<ProgressBar>` | Visual progress indicator |
+| `<Badge>` | Colored status badges |
+| `<StatusMessage>` | Success/error/warning/info messages |
+| `<ConfirmInput>` | Y/n confirmation prompts |
+| `<Static>` | Render static content above dynamic output |
+| `<Transform>` | Transform text output |
+| `<Newline>` | Insert line breaks |
+| `<Spacer>` | Flexible space filler |
+
+### Hooks
+
+| Hook | Description |
+|------|-------------|
+| `useInput` | Handle keyboard input |
+| `useApp` | Access app instance (exit, etc.) |
+| `useFocus` | Make components focusable |
+| `useFocusManager` | Control focus programmatically |
+| `useStdout` | Direct stdout access |
+| `useStderr` | Direct stderr access |
+| `useStdin` | Raw stdin access |
+
+### Flexbox Layout
+
+Full Flexbox support with Yoga WASM:
+
+```tsx
+<Box
+  flexDirection="column"
+  justifyContent="center"
+  alignItems="center"
+  width="100%"
+  height={10}
+  padding={1}
+  borderStyle="round"
+  borderColor="cyan"
+>
+  <Text>Centered content</Text>
+</Box>
+```
+
+## Examples
+
+### Interactive Counter
+
+```tsx
+import React, { useState } from "npm:react";
+import { render, Box, Text, useInput, useApp } from "jsr:@deno-ink/core";
+
+function Counter() {
+  const [count, setCount] = useState(0);
+  const { exit } = useApp();
+
+  useInput((input, key) => {
+    if (input === "q") exit();
+    if (key.upArrow) setCount((c) => c + 1);
+    if (key.downArrow) setCount((c) => c - 1);
+  });
+
+  return (
+    <Box flexDirection="column">
+      <Text>Count: <Text color="green" bold>{count}</Text></Text>
+      <Text dimColor>↑/↓ to change, q to quit</Text>
+    </Box>
+  );
+}
+
+await render(<Counter />);
+```
+
+### Loading Spinner
+
+```tsx
+import React from "npm:react";
+import { render, Box, Text, Spinner } from "jsr:@deno-ink/core";
+
+function Loading() {
+  return (
+    <Box>
+      <Spinner type="dots" color="cyan" />
+      <Text> Loading...</Text>
+    </Box>
+  );
+}
+
+await render(<Loading />);
+```
+
+### Selection Menu
+
+```tsx
+import React from "npm:react";
+import { render, SelectInput } from "jsr:@deno-ink/core";
+
+function Menu() {
+  const items = [
+    { label: "JavaScript", value: "js" },
+    { label: "TypeScript", value: "ts" },
+    { label: "Python", value: "py" },
+  ];
+
+  return (
+    <SelectInput
+      items={items}
+      onSelect={(item) => console.log("Selected:", item.value)}
+    />
+  );
+}
+
+await render(<Menu />);
+```
+
+## Documentation
+
+- [Components](#components-1)
+- [Hooks](#hooks-1)
+- [Style Properties](#style-properties)
+- [Utilities](#utilities)
+- [TypeScript Types](#typescript-types)
 
 ## Table of Contents
 
 - [Installation](#installation)
-- [Basic Usage](#basic-usage)
+- [Quick Start](#quick-start)
 - [Components](#components)
   - [Box](#box)
   - [Text](#text)
@@ -21,7 +216,7 @@ A Deno-native implementation of [Ink](https://github.com/vadimdemedes/ink) - the
   - [Badge](#badge)
   - [StatusMessage](#statusmessage)
   - [ConfirmInput](#confirminput)
-- [Hooks](#hooks)
+- [Hooks](#hooks-1)
   - [useInput](#useinput)
   - [useApp](#useapp)
   - [useFocus](#usefocus)
@@ -34,71 +229,7 @@ A Deno-native implementation of [Ink](https://github.com/vadimdemedes/ink) - the
 - [Utilities](#utilities)
 - [TypeScript Types](#typescript-types)
 
-## Installation
-
-```typescript
-import {
-  render,
-  Box,
-  Text,
-  useInput,
-  useApp,
-} from "jsr:@anthropic/deno-ink";
-```
-
-Or add to your `deno.json`:
-
-```json
-{
-  "imports": {
-    "@anthropic/deno-ink": "jsr:@anthropic/deno-ink"
-  }
-}
-```
-
-## Basic Usage
-
-```tsx
-import React from "npm:react";
-import { render, Box, Text } from "jsr:@anthropic/deno-ink";
-
-function App() {
-  return (
-    <Box flexDirection="column" padding={1}>
-      <Text color="green" bold>
-        Hello, Deno Ink!
-      </Text>
-      <Text>Build beautiful CLI apps with React</Text>
-    </Box>
-  );
-}
-
-const { waitUntilExit } = await render(<App />);
-await waitUntilExit();
-```
-
-### Render Options
-
-```typescript
-interface InkOptions {
-  stdout?: typeof Deno.stdout;  // Custom stdout stream
-  stdin?: typeof Deno.stdin;    // Custom stdin stream
-  stderr?: typeof Deno.stderr;  // Custom stderr stream
-  exitOnCtrlC?: boolean;        // Exit on Ctrl+C (default: true)
-  debug?: boolean;              // Enable debug mode (default: false)
-  maxFps?: number;              // Maximum frames per second (default: 60)
-  patchConsole?: boolean;       // Intercept console.log during render (default: true)
-  isScreenReaderEnabled?: boolean;  // Enable screen reader mode
-  onRender?: (info: { renderTime: number }) => void;  // Render callback with timing
-}
-
-interface InkInstance {
-  rerender: (node: ReactNode) => void;  // Re-render with new element
-  unmount: () => void;                   // Unmount and cleanup
-  waitUntilExit: () => Promise<void>;   // Wait for app to exit
-  clear: () => void;                     // Clear the output
-}
-```
+---
 
 ## Components
 
@@ -107,7 +238,7 @@ interface InkInstance {
 A flex container component for layout. Supports all flexbox properties.
 
 ```tsx
-import { Box, Text } from "jsr:@anthropic/deno-ink";
+import { Box, Text } from "jsr:@deno-ink/core";
 
 // Horizontal layout (default)
 <Box>
@@ -143,7 +274,7 @@ import { Box, Text } from "jsr:@anthropic/deno-ink";
 Renders text with styling options.
 
 ```tsx
-import { Text } from "jsr:@anthropic/deno-ink";
+import { Text } from "jsr:@deno-ink/core";
 
 <Text>Plain text</Text>
 <Text color="green">Green text</Text>
@@ -181,7 +312,7 @@ import { Text } from "jsr:@anthropic/deno-ink";
 Inserts one or more newlines.
 
 ```tsx
-import { Text, Newline } from "jsr:@anthropic/deno-ink";
+import { Text, Newline } from "jsr:@deno-ink/core";
 
 <Text>
   Line 1
@@ -203,7 +334,7 @@ import { Text, Newline } from "jsr:@anthropic/deno-ink";
 A flexible spacer that expands to fill available space.
 
 ```tsx
-import { Box, Text, Spacer } from "jsr:@anthropic/deno-ink";
+import { Box, Text, Spacer } from "jsr:@deno-ink/core";
 
 <Box width={40}>
   <Text>Left</Text>
@@ -217,7 +348,7 @@ import { Box, Text, Spacer } from "jsr:@anthropic/deno-ink";
 An animated loading spinner with multiple styles.
 
 ```tsx
-import { Box, Text, Spinner } from "jsr:@anthropic/deno-ink";
+import { Box, Text, Spinner } from "jsr:@deno-ink/core";
 
 <Box>
   <Spinner type="dots" color="cyan" />
@@ -247,7 +378,7 @@ Renders items once and keeps them above dynamic content. Useful for logs or comp
 
 ```tsx
 import { useState } from "npm:react";
-import { Box, Text, Static } from "jsr:@anthropic/deno-ink";
+import { Box, Text, Static } from "jsr:@deno-ink/core";
 
 function App() {
   const [logs, setLogs] = useState<string[]>([]);
@@ -281,7 +412,7 @@ function App() {
 Applies a transformation function to text output.
 
 ```tsx
-import { Text, Transform } from "jsr:@anthropic/deno-ink";
+import { Text, Transform } from "jsr:@deno-ink/core";
 
 // Add line numbers
 <Transform transform={(text, index) => `${index + 1}: ${text}`}>
@@ -314,7 +445,7 @@ import { Text, Transform } from "jsr:@anthropic/deno-ink";
 Catches errors in child components and displays a fallback.
 
 ```tsx
-import { Text, ErrorBoundary } from "jsr:@anthropic/deno-ink";
+import { Text, ErrorBoundary } from "jsr:@deno-ink/core";
 
 <ErrorBoundary
   fallback={(error) => (
@@ -342,7 +473,7 @@ A single-line text input component.
 
 ```tsx
 import { useState } from "npm:react";
-import { Box, Text, TextInput } from "jsr:@anthropic/deno-ink";
+import { Box, Text, TextInput } from "jsr:@deno-ink/core";
 
 function App() {
   const [value, setValue] = useState("");
@@ -380,7 +511,7 @@ function App() {
 Select from a list of options using arrow keys.
 
 ```tsx
-import { SelectInput } from "jsr:@anthropic/deno-ink";
+import { SelectInput } from "jsr:@deno-ink/core";
 
 function App() {
   const items = [
@@ -427,7 +558,7 @@ interface SelectInputItem<V> {
 A visual progress indicator.
 
 ```tsx
-import { ProgressBar } from "jsr:@anthropic/deno-ink";
+import { ProgressBar } from "jsr:@deno-ink/core";
 
 // Basic usage
 <ProgressBar value={50} />
@@ -459,7 +590,7 @@ import { ProgressBar } from "jsr:@anthropic/deno-ink";
 A colored status badge component.
 
 ```tsx
-import { Badge } from "jsr:@anthropic/deno-ink";
+import { Badge } from "jsr:@deno-ink/core";
 
 <Badge>INFO</Badge>
 <Badge color="green">SUCCESS</Badge>
@@ -479,7 +610,7 @@ import { Badge } from "jsr:@anthropic/deno-ink";
 Display status messages with variant-specific icons and colors.
 
 ```tsx
-import { StatusMessage } from "jsr:@anthropic/deno-ink";
+import { StatusMessage } from "jsr:@deno-ink/core";
 
 <StatusMessage variant="success">Operation completed</StatusMessage>
 <StatusMessage variant="error">Something went wrong</StatusMessage>
@@ -509,7 +640,7 @@ A Y/n confirmation prompt component.
 
 ```tsx
 import { useState } from "npm:react";
-import { Box, Text, ConfirmInput } from "jsr:@anthropic/deno-ink";
+import { Box, Text, ConfirmInput } from "jsr:@deno-ink/core";
 
 function App() {
   const [confirmed, setConfirmed] = useState<boolean | null>(null);
@@ -539,6 +670,8 @@ function App() {
 | `defaultValue` | `boolean` | `true` | Default selection (affects Enter behavior and display) |
 | `isDisabled` | `boolean` | `false` | Disable input handling |
 
+---
+
 ## Hooks
 
 ### useInput
@@ -546,7 +679,7 @@ function App() {
 Handle keyboard input.
 
 ```tsx
-import { useInput } from "jsr:@anthropic/deno-ink";
+import { useInput } from "jsr:@deno-ink/core";
 
 function App() {
   useInput((input, key) => {
@@ -606,7 +739,7 @@ Access the Ink app instance to programmatically exit.
 
 ```tsx
 import { useEffect } from "npm:react";
-import { useApp, Text } from "jsr:@anthropic/deno-ink";
+import { useApp, Text } from "jsr:@deno-ink/core";
 
 function App() {
   const { exit } = useApp();
@@ -637,7 +770,7 @@ interface AppContextValue {
 Make a component focusable and track focus state.
 
 ```tsx
-import { useFocus, Box, Text } from "jsr:@anthropic/deno-ink";
+import { useFocus, Box, Text } from "jsr:@deno-ink/core";
 
 function Button({ label }: { label: string }) {
   const { isFocused, focus } = useFocus({ autoFocus: true });
@@ -674,7 +807,7 @@ interface UseFocusResult {
 Control focus programmatically across components.
 
 ```tsx
-import { useFocusManager, useInput, Box } from "jsr:@anthropic/deno-ink";
+import { useFocusManager, useInput, Box } from "jsr:@deno-ink/core";
 
 function App() {
   const { focusNext, focusPrevious, focus, enableFocus, disableFocus } = useFocusManager();
@@ -717,7 +850,7 @@ Access stdout for direct writing.
 
 ```tsx
 import { useEffect } from "npm:react";
-import { useStdout, Text } from "jsr:@anthropic/deno-ink";
+import { useStdout, Text } from "jsr:@deno-ink/core";
 
 function App() {
   const { write, stdout } = useStdout();
@@ -745,7 +878,7 @@ Access stderr for direct error writing.
 
 ```tsx
 import { useEffect } from "npm:react";
-import { useStderr, Text } from "jsr:@anthropic/deno-ink";
+import { useStderr, Text } from "jsr:@deno-ink/core";
 
 function App() {
   const { write, stderr } = useStderr();
@@ -773,7 +906,7 @@ Access stdin and raw mode control.
 
 ```tsx
 import { useEffect } from "npm:react";
-import { useStdin, Text } from "jsr:@anthropic/deno-ink";
+import { useStdin, Text } from "jsr:@deno-ink/core";
 
 function App() {
   const { setRawMode, isRawModeSupported, stdin } = useStdin();
@@ -804,7 +937,7 @@ interface StdinContextValue {
 Check if screen reader mode is enabled.
 
 ```tsx
-import { useIsScreenReaderEnabled, Text } from "jsr:@anthropic/deno-ink";
+import { useIsScreenReaderEnabled, Text } from "jsr:@deno-ink/core";
 
 function App() {
   const isScreenReaderEnabled = useIsScreenReaderEnabled();
@@ -822,6 +955,8 @@ Screen reader mode can be enabled via:
 - The `INK_SCREEN_READER=1` environment variable
 
 **Returns:** `boolean` - Whether screen reader mode is active
+
+---
 
 ## Style Properties
 
@@ -916,6 +1051,8 @@ interface CustomBorder {
 }
 ```
 
+---
+
 ## Utilities
 
 ### measureText
@@ -923,7 +1060,7 @@ interface CustomBorder {
 Measure text dimensions with caching.
 
 ```typescript
-import { measureText, widestLine, clearMeasureCache } from "jsr:@anthropic/deno-ink";
+import { measureText, widestLine, clearMeasureCache } from "jsr:@deno-ink/core";
 
 const { width, height } = measureText("Hello\nWorld");
 // width: 5, height: 2
@@ -941,7 +1078,7 @@ Measure the dimensions of a rendered element.
 
 ```tsx
 import { useRef, useEffect } from "npm:react";
-import { Box, Text, measureElement } from "jsr:@anthropic/deno-ink";
+import { Box, Text, measureElement } from "jsr:@deno-ink/core";
 
 function App() {
   const ref = useRef(null);
@@ -975,7 +1112,7 @@ interface ElementDimensions {
 Utilities for detecting CI environments and capabilities.
 
 ```typescript
-import { isCI, shouldUseColors, isInteractive } from "jsr:@anthropic/deno-ink";
+import { isCI, shouldUseColors, isInteractive } from "jsr:@deno-ink/core";
 
 // Check if running in CI environment
 if (isCI()) {
@@ -1006,11 +1143,13 @@ if (isInteractive()) {
 Access spinner definitions directly.
 
 ```typescript
-import { spinners, type SpinnerName, type SpinnerDefinition } from "jsr:@anthropic/deno-ink";
+import { spinners, type SpinnerName, type SpinnerDefinition } from "jsr:@deno-ink/core";
 
 const dotsSpinner = spinners.dots;
 // { interval: 80, frames: ["...", "...", ...] }
 ```
+
+---
 
 ## TypeScript Types
 
@@ -1064,112 +1203,45 @@ import type {
   // Spinners
   SpinnerName,
   SpinnerDefinition,
-} from "jsr:@anthropic/deno-ink";
+} from "jsr:@deno-ink/core";
 ```
 
-## Examples
+---
 
-### Counter App
+## Render Options
 
-```tsx
-import React, { useState, useEffect } from "npm:react";
-import { render, Box, Text, useInput, useApp } from "jsr:@anthropic/deno-ink";
-
-function Counter() {
-  const [count, setCount] = useState(0);
-  const { exit } = useApp();
-
-  useInput((input, key) => {
-    if (input === "q") {
-      exit();
-    }
-    if (key.upArrow) {
-      setCount((c) => c + 1);
-    }
-    if (key.downArrow) {
-      setCount((c) => c - 1);
-    }
-  });
-
-  return (
-    <Box flexDirection="column">
-      <Text>Count: <Text color="green" bold>{count}</Text></Text>
-      <Text dimColor>Use arrows to change, q to quit</Text>
-    </Box>
-  );
+```typescript
+interface InkOptions {
+  stdout?: typeof Deno.stdout;  // Custom stdout stream
+  stdin?: typeof Deno.stdin;    // Custom stdin stream
+  stderr?: typeof Deno.stderr;  // Custom stderr stream
+  exitOnCtrlC?: boolean;        // Exit on Ctrl+C (default: true)
+  debug?: boolean;              // Enable debug mode (default: false)
+  maxFps?: number;              // Maximum frames per second (default: 60)
+  patchConsole?: boolean;       // Intercept console.log during render (default: true)
+  isScreenReaderEnabled?: boolean;  // Enable screen reader mode
+  onRender?: (info: { renderTime: number }) => void;  // Render callback with timing
 }
 
-const { waitUntilExit } = await render(<Counter />);
-await waitUntilExit();
+interface InkInstance {
+  rerender: (node: ReactNode) => void;  // Re-render with new element
+  unmount: () => void;                   // Unmount and cleanup
+  waitUntilExit: () => Promise<void>;   // Wait for app to exit
+  clear: () => void;                     // Clear the output
+}
 ```
 
-### Form with Multiple Inputs
+---
 
-```tsx
-import React, { useState } from "npm:react";
-import { render, Box, Text, TextInput, useFocus, useFocusManager, useInput } from "jsr:@anthropic/deno-ink";
+## Credits
 
-function Input({ label, value, onChange }) {
-  const { isFocused } = useFocus();
+This is a Deno port of [Ink](https://github.com/vadimdemedes/ink) by [Vadim Demedes](https://github.com/vadimdemedes). All credit for the original design and API goes to the Ink team.
 
-  return (
-    <Box>
-      <Text color={isFocused ? "cyan" : undefined}>{label}: </Text>
-      <TextInput value={value} onChange={onChange} focus={isFocused} />
-    </Box>
-  );
-}
+## Related
 
-function Form() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const { focusNext, focusPrevious } = useFocusManager();
-
-  useInput((input, key) => {
-    if (key.tab) {
-      key.shift ? focusPrevious() : focusNext();
-    }
-  });
-
-  return (
-    <Box flexDirection="column" padding={1} borderStyle="round">
-      <Text bold>Registration Form</Text>
-      <Input label="Name" value={name} onChange={setName} />
-      <Input label="Email" value={email} onChange={setEmail} />
-    </Box>
-  );
-}
-
-await render(<Form />);
-```
-
-### Loading Spinner
-
-```tsx
-import React, { useState, useEffect } from "npm:react";
-import { render, Box, Text, Spinner } from "jsr:@anthropic/deno-ink";
-
-function Loading() {
-  const [done, setDone] = useState(false);
-
-  useEffect(() => {
-    setTimeout(() => setDone(true), 3000);
-  }, []);
-
-  if (done) {
-    return <Text color="green">Done!</Text>;
-  }
-
-  return (
-    <Box>
-      <Spinner type="dots" color="cyan" />
-      <Text> Loading...</Text>
-    </Box>
-  );
-}
-
-await render(<Loading />);
-```
+- [Ink](https://github.com/vadimdemedes/ink) - The original React renderer for CLIs (Node.js)
+- [Yoga](https://yogalayout.dev/) - Flexbox layout engine
+- [React](https://react.dev/) - The library for web and native user interfaces
 
 ## License
 
