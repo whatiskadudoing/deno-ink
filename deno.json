@@ -1,5 +1,5 @@
 {
-  "name": "@aspect/deno-ink",
+  "name": "@ink/deno",
   "version": "0.1.0",
   "exports": "./src/mod.ts",
   "tasks": {
