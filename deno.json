@@ -1,5 +1,5 @@
 {
-  "name": "@ink/deno",
+  "name": "@deno-ink/core",
   "version": "0.1.0",
   "exports": "./src/mod.ts",
   "tasks": {
