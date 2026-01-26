@@ -2,6 +2,9 @@
   "name": "@deno-ink/core",
   "version": "0.1.0",
   "exports": "./src/mod.ts",
+  "publish": {
+    "exclude": ["test/", "*.test.ts", "*.test.tsx"]
+  },
   "tasks": {
     "test": "deno test test/ --allow-read --allow-env --allow-run --allow-net --no-check"
   },
@@ -10,6 +13,7 @@
     "jsxImportSource": "react"
   },
   "imports": {
+    "@std/path": "jsr:@std/path@1",
     "react": "npm:react@18.3.1",
     "react/jsx-runtime": "npm:react@18.3.1/jsx-runtime",
     "react-reconciler": "npm:react-reconciler@0.29.2",

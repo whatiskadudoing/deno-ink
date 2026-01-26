@@ -26,7 +26,7 @@ export interface BadgeProps {
  * <Badge color="yellow">WARNING</Badge>
  * ```
  */
-export function Badge({ children, color = "blue" }: BadgeProps) {
+export function Badge({ children, color = "blue" }: BadgeProps): React.ReactNode {
   return (
     <Text backgroundColor={color} color="white" bold>
       {" "}{children}{" "}

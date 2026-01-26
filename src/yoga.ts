@@ -2,7 +2,7 @@
 // Custom Yoga loader for Deno
 
 import initYogaModule from "yoga-wasm-web";
-import { join } from "https://deno.land/std@0.224.0/path/mod.ts";
+import { join } from "@std/path";
 
 let yoga: any = null;
 

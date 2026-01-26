@@ -55,7 +55,7 @@ export function ProgressBar({
   backgroundColor,
   character = "█",
   backgroundCharacter = "░",
-}: ProgressBarProps) {
+}: ProgressBarProps): React.ReactNode {
   // Calculate percentage, clamped to 0-100
   const percentage = Math.min(100, Math.max(0, (value / maxValue) * 100));
   const filledWidth = Math.round((percentage / 100) * width);

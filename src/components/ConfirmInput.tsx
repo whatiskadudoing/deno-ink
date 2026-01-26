@@ -46,7 +46,7 @@ export function ConfirmInput({
   onCancel,
   defaultValue = true,
   isDisabled = false,
-}: ConfirmInputProps) {
+}: ConfirmInputProps): React.ReactNode {
   useInput(
     (input, key) => {
       if (isDisabled) return;
