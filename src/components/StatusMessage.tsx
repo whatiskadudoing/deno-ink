@@ -35,7 +35,7 @@ export interface StatusMessageProps {
  * <StatusMessage variant="info">For your information</StatusMessage>
  * ```
  */
-export function StatusMessage({ children, variant }: StatusMessageProps): React.ReactNode {
+export function StatusMessage({ children, variant }: StatusMessageProps) {
   const { symbol, color } = VARIANTS[variant];
 
   return (

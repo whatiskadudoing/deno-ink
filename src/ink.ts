@@ -129,7 +129,7 @@ export interface InkOptions {
    * Use alternate screen buffer for full-screen apps.
    * When enabled, the app renders in a separate buffer (like vim/less).
    * On exit, the original screen is restored.
-   * @default true
+   * @default false
    */
   fullScreen?: boolean;
 }
@@ -142,6 +142,9 @@ export interface InkInstance {
 }
 
 export class Ink {
+  // Shared encoder to avoid GC pressure (was creating new one per write)
+  private static readonly textEncoder = new TextEncoder();
+
   private readonly options: Required<Omit<InkOptions, "onRender">> & Pick<InkOptions, "onRender">;
   private readonly rootNode: DOMElement;
   private readonly reconciler: ReturnType<typeof createReconciler>;
@@ -150,6 +153,7 @@ export class Ink {
   private lastOutput: string = "";
   private lastHeight: number = 0;
   private lastWidth: number = 0;
+  private lastTerminalHeight: number = 0; // Track terminal height for resize
   private maxHeight: number = 0; // Track max height for proper clearing
   private firstRender: boolean = true;
   private exitPromise: Promise<void>;
@@ -167,6 +171,7 @@ export class Ink {
   private patchedConsole: PatchedConsole | null = null;
   private readonly inCI: boolean;
   private readonly isScreenReaderEnabled: boolean;
+  private finalOutput: string | null = null; // Output to print on unmount
 
   constructor(options: InkOptions = {}) {
     // Detect CI environment
@@ -192,7 +197,7 @@ export class Ink {
       maxFps: options.maxFps ?? 60,
       patchConsole: options.patchConsole ?? true,
       isScreenReaderEnabled: this.isScreenReaderEnabled,
-      fullScreen: options.fullScreen ?? true,
+      fullScreen: options.fullScreen ?? false,
       onRender: options.onRender,
     };
 
@@ -256,19 +261,23 @@ export class Ink {
     try {
       const initialSize = Deno.consoleSize();
       this.lastWidth = initialSize.columns;
+      this.lastTerminalHeight = initialSize.rows;
     } catch {
       this.lastWidth = 80;
+      this.lastTerminalHeight = 24;
     }
 
     this.resizeCheckInterval = setInterval(() => {
       try {
         const size = Deno.consoleSize();
-        if (size.columns !== this.lastWidth) {
-          const widthDecreased = size.columns < this.lastWidth;
+        const widthChanged = size.columns !== this.lastWidth;
+        const heightChanged = size.rows !== this.lastTerminalHeight;
 
+        if (widthChanged || heightChanged) {
           // Width changed - need to do a full clear because layout will change
           this.forceFullClear = true;
           this.lastWidth = size.columns;
+          this.lastTerminalHeight = size.rows;
 
           // On resize, we need to erase the maximum height we've ever used
           // Don't reset lastHeight - we need it to properly erase on next render
@@ -279,7 +288,16 @@ export class Ink {
       } catch {
         // Ignore
       }
-    }, 50) as unknown as number; // Check more frequently
+    }, 500) as unknown as number; // Check every 500ms (was 50ms)
+  }
+
+  /**
+   * Set the final output to be printed when the app unmounts.
+   * This output is printed to the terminal after exiting the alternate screen buffer,
+   * so it persists in terminal history (scrollback).
+   */
+  setFinalOutput(output: string): void {
+    this.finalOutput = output;
   }
 
   private fullClear(): void {
@@ -421,6 +439,10 @@ export class Ink {
 
     // In full-screen mode, use simpler approach: move to home and redraw
     if (this.options.fullScreen) {
+      // On resize (forceFullClear), clear entire screen to remove artifacts
+      if (this.forceFullClear) {
+        frameBuffer += CLEAR_SCREEN;
+      }
       frameBuffer += CURSOR_HOME;
       const lines = output.split("\n");
       for (let i = 0; i < lines.length; i++) {
@@ -429,8 +451,8 @@ export class Ink {
           frameBuffer += "\n";
         }
       }
-      // Clear any remaining lines from previous render
-      if (this.lastHeight > lines.length) {
+      // Clear any remaining lines from previous render (when content shrinks)
+      if (!this.forceFullClear && this.lastHeight > lines.length) {
         for (let i = lines.length; i < this.lastHeight; i++) {
           frameBuffer += "\n" + ERASE_LINE;
         }
@@ -551,8 +573,7 @@ export class Ink {
   }
 
   private writeSync(data: string): void {
-    const encoder = new TextEncoder();
-    const bytes = encoder.encode(data);
+    const bytes = Ink.textEncoder.encode(data);
     Deno.stdout.writeSync(bytes);
   }
 
@@ -563,21 +584,22 @@ export class Ink {
         this.exitError = error;
         this.unmount();
       },
+      setFinalOutput: (output: string) => {
+        this.setFinalOutput(output);
+      },
     };
 
     const stdoutContext: StdoutContextValue = {
       stdout: this.options.stdout,
       write: (data: string) => {
-        const encoder = new TextEncoder();
-        this.options.stdout.writeSync(encoder.encode(data));
+        this.options.stdout.writeSync(Ink.textEncoder.encode(data));
       },
     };
 
     const stderrContext: StderrContextValue = {
       stderr: this.options.stderr,
       write: (data: string) => {
-        const encoder = new TextEncoder();
-        this.options.stderr.writeSync(encoder.encode(data));
+        this.options.stderr.writeSync(Ink.textEncoder.encode(data));
       },
     };
 
@@ -646,6 +668,14 @@ export class Ink {
       // Exit alternate screen buffer if we were in full-screen mode
       if (this.options.fullScreen) {
         this.writeSync(EXIT_ALT_SCREEN);
+
+        // Print final output AFTER exiting alternate buffer so it persists
+        if (this.finalOutput) {
+          this.writeSync(this.finalOutput);
+          if (!this.finalOutput.endsWith("\n")) {
+            this.writeSync("\n");
+          }
+        }
       }
     }
 

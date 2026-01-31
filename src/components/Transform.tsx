@@ -41,7 +41,7 @@ export interface TransformProps {
  * // Output: [0: {0: test}]
  * ```
  */
-export function Transform({ children, transform }: TransformProps): React.ReactNode {
+export function Transform({ children, transform }: TransformProps) {
   if (children === undefined || children === null) {
     return null;
   }
