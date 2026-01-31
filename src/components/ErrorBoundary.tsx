@@ -85,4 +85,4 @@ function createErrorBoundary(): ComponentClass<ErrorBoundaryProps, ErrorBoundary
  * </ErrorBoundary>
  * ```
  */
-export const ErrorBoundary: ComponentClass<ErrorBoundaryProps, ErrorBoundaryState> = createErrorBoundary();
+export const ErrorBoundary = createErrorBoundary();
