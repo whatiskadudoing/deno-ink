@@ -437,30 +437,26 @@ export class Ink {
     // Build the complete frame in a single buffer to minimize writes
     let frameBuffer = "";
 
-    // In full-screen mode, use simpler approach: move to home and redraw
+    // In full-screen mode, clear and redraw from home position
     if (this.options.fullScreen) {
-      // On resize (forceFullClear), clear entire screen to remove artifacts
-      if (this.forceFullClear) {
-        frameBuffer += CLEAR_SCREEN;
-      }
-      frameBuffer += CURSOR_HOME;
+      // Clear screen and move to home position
+      // We always clear to prevent artifacts from potential cursor positioning issues
+      // This is safe because we already skip renders when output hasn't changed
+      frameBuffer += CLEAR_SCREEN + CURSOR_HOME;
+
       const lines = output.split("\n");
       for (let i = 0; i < lines.length; i++) {
-        frameBuffer += lines[i] + CLEAR_TO_EOL;
+        frameBuffer += lines[i];
         if (i < lines.length - 1) {
           frameBuffer += "\n";
         }
       }
-      // Clear any remaining lines from previous render (when content shrinks)
-      if (!this.forceFullClear && this.lastHeight > lines.length) {
-        for (let i = lines.length; i < this.lastHeight; i++) {
-          frameBuffer += "\n" + ERASE_LINE;
-        }
-      }
+
       this.writeSync(frameBuffer);
       this.lastOutput = output;
       this.lastHeight = lines.length;
       this.forceFullClear = false;
+      this.firstRender = false;
 
       // Call onRender callback with timing info
       if (this.options.onRender) {
